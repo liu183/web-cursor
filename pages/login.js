@@ -5,8 +5,8 @@ import { useRouter } from 'next/router'
 import styles from '../styles/Login.module.css'
 
 export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('test')
+  const [password, setPassword] = useState('111')
   const [error, setError] = useState('')
   const dispatch = useDispatch()
   const router = useRouter()
@@ -45,6 +45,9 @@ export default function Login() {
         />
         <button type="submit" className={styles.button}>登录</button>
       </form>
+      <p className={styles.hint}>
+        测试账户：用户名 test，密码 111
+      </p>
     </div>
   )
 }
