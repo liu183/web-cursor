@@ -5,13 +5,36 @@ import { useSelector, useDispatch } from 'react-redux'
 import { sendMessage, fetchMessages } from '../store/chatSlice'
 import { selectUser } from '../store/authSlice'
 import { useRouter } from 'next/router'
-import { FaPaperPlane, FaMicrophone, FaImage, FaPaperclip } from 'react-icons/fa'
+import { FaPaperPlane, FaMicrophone, FaImage, FaPaperclip, FaCopy } from 'react-icons/fa'
 import axios from 'axios'
+import ReactMarkdown from 'react-markdown'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism'
+import rehypeKatex from 'rehype-katex'
+import 'katex/dist/katex.min.css'
 
 const DEEPSEEK_API_KEY = 'sk-9967ede904c44d53afa01c113ecd1f30'
 
+const CopyButton = ({ text }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <button onClick={handleCopy} className={styles.copyButton}>
+      {copied ? 'Copied!' : <FaCopy />}
+    </button>
+  );
+};
+
 export default function Chat() {
   const [input, setInput] = useState('')
+  const [isAiThinking, setIsAiThinking] = useState(false)
   const messages = useSelector(state => state.chat.messages)
   const user = useSelector(selectUser)
   const dispatch = useDispatch()
@@ -38,6 +61,7 @@ export default function Chat() {
       const userMessage = { role: 'user', content: input }
       dispatch(sendMessage({ content: input, userId: user.id }))
       setInput('')
+      setIsAiThinking(true)
 
       try {
         const response = await axios.post('/api/chat', {
@@ -52,6 +76,8 @@ export default function Chat() {
       } catch (error) {
         console.error('Error calling chat API:', error)
         dispatch(sendMessage({ content: "抱歉，我遇到了一些问题。请稍后再试。", userId: 'ai' }))
+      } finally {
+        setIsAiThinking(false)
       }
     }
   }
@@ -62,6 +88,12 @@ export default function Chat() {
         <title>AI Chat - 智能对话</title>
         <meta name="description" content="AI Chat 智能对话界面" />
         <link rel="icon" href="/favicon.ico" />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/katex@0.13.11/dist/katex.min.css"
+          integrity="sha384-Um5gpz1odJg5Z4HAmzPtgZKdTBHZdw8S29IecapCSB31ligYPhHQZMIlWLYQGVoc"
+          crossOrigin="anonymous"
+        />
       </Head>
 
       <main className={styles.main}>
@@ -77,13 +109,55 @@ export default function Chat() {
           {messages.map((message, index) => (
             <div key={index} className={`${styles.message} ${message.userId === user.id ? styles.userMessage : styles.aiMessage}`}>
               <div className={styles.messageContent}>
-                {message.content}
+                <ReactMarkdown
+                  rehypePlugins={[rehypeKatex]}
+                  components={{
+                    code({node, inline, className, children, ...props}) {
+                      const match = /language-(\w+)/.exec(className || '')
+                      return !inline && match ? (
+                        <div className={styles.codeBlock}>
+                          <SyntaxHighlighter
+                            style={tomorrow}
+                            language={match[1]}
+                            PreTag="div"
+                            {...props}
+                          >
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                          <CopyButton text={String(children)} />
+                        </div>
+                      ) : (
+                        <code className={className} {...props}>
+                          {children}
+                        </code>
+                      )
+                    },
+                    math({value}) {
+                      return (
+                        <div className={styles.mathBlock}>
+                          <span>{value}</span>
+                          <CopyButton text={value} />
+                        </div>
+                      )
+                    },
+                    inlineMath({value}) {
+                      return <span>{value}</span>
+                    }
+                  }}
+                >
+                  {message.content}
+                </ReactMarkdown>
               </div>
               <div className={styles.messageTime}>
                 {new Date(message.timestamp).toLocaleTimeString()}
               </div>
             </div>
           ))}
+          {isAiThinking && (
+            <div className={`${styles.message} ${styles.aiMessage} ${styles.thinkingMessage}`}>
+              AI正在思考...
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className={styles.inputForm}>

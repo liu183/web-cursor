@@ -76,6 +76,40 @@
   line-height: 1.4;
 }
 
+.messageContent p {
+  margin-bottom: 0.5rem;
+}
+
+.messageContent pre {
+  background-color: #f4f4f4;
+  padding: 1rem;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.messageContent code {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: #f4f4f4;
+  padding: 0.2rem 0.4rem;
+  border-radius: 2px;
+}
+
+.messageContent blockquote {
+  border-left: 4px solid #ccc;
+  margin-left: 0;
+  padding-left: 1rem;
+  color: #666;
+}
+
+.messageContent ul, .messageContent ol {
+  margin-left: 1.5rem;
+}
+
+.messageContent img {
+  max-width: 100%;
+  height: auto;
+}
+
 .messageTime {
   font-size: 0.75rem;
   color: #999;
@@ -137,4 +171,49 @@
   .message {
     max-width: 85%;
   }
+}
+
+/* 在文件末尾添加以下样式 */
+
+.thinkingMessage {
+  background-color: #f0f0f0;
+  color: #666;
+  font-style: italic;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 1rem;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.codeBlock, .mathBlock {
+  position: relative;
+}
+
+.copyButton {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border: none;
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.copyButton:hover {
+  background-color: rgba(255, 255, 255, 0.9);
 }
